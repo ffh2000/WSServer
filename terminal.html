@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="node_modules/jquery.terminal/js/jquery.terminal.js"></script>
+    <script src="node_modules/jquery.terminal/js/unix_formatting.js"></script>
+    <link href="node_modules/jquery.terminal/css/jquery.terminal.min.css" rel="stylesheet"/>
+    <link href="node_modules/jquery.terminal/css/emoji.css" rel="stylesheet"/>
+
+    <style>
+        .terminal, .cmd, .terminal .terminal-output div div, .cmd .prompt {
+            font-size: 20px;
+            line-height: 20px;
+        }
+    </style>
+
+</head>
+
+<script>
+
+</script>
+
+<body>
+<div id="terminal" class="terminal"></div>
+
+<script>
+    // jQuery(function($, undefined) {
+    $(document).ready(function () {
+        $(function () {
+            let ws;
+            let terminal;
+
+            const commands = {};
+            terminal = $('#terminal').terminal(commands, {
+                greetings: 'MS Shell2 Terminal',
+                name: 'msshell2_terminal',
+                prompt: '> ',
+                outputLimit: 42,
+                onBeforeCommand: function (command) {
+                    this.echo(command);
+                    ws.send(command + "\n")
+                    return false
+                }
+            });
+            terminal.resize(800, 600)
+
+            ws = new WebSocket('ws://10.105.0.79:8081');
+            ws.onopen = function (event) {
+                console.log('Соединение установлено:', event);
+                // Можно отправить сообщение на сервер
+                // ws.send('ls --color -1\n');
+            };
+
+            // Событие, которое срабатывает при получении сообщения от сервера
+            ws.onmessage = function (event) {
+                // console.log(event.data);
+                terminal.echo(event.data, {
+                    newline: false
+                })
+            };
+
+            // Событие, которое срабатывает при ошибке
+            ws.onerror = function (error) {
+                console.log('Ошибка WebSocket:', error);
+            };
+
+            // Событие, которое срабатывает при закрытии соединения
+            ws.onclose = function (event) {
+                console.log('Соединение закрыто:', event);
+            };
+        });
+    });
+</script>
+</body>
+</html>
